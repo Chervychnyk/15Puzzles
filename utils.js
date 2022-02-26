@@ -21,17 +21,32 @@ const chunk = (arr, size) => {
   }, []);
 };
 
-function areArraysEqual(a, b) {
+const areArraysEqual = (a, b) => {
   if (a.length != b.length) return false;
 
-  for (var i = 0; i < a.length; i++) {
-    if (a[i] instanceof Array && b[i] instanceof Array) {
-      if (!areArraysEqual(a[i], b[i])) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (Array.isArray(a[i]) && Array.isArray(b[i])) {
+      return areArraysEqual(a[i], b[i]);
     } else if (a[i] != b[i]) {
       return false;
     }
   }
-  return true;
-}
 
-module.exports = { shuffle, chunk, areArraysEqual };
+  return true;
+};
+
+const getInvCount = (array) => {
+  let invCount = 0;
+
+  for (let i = 0; i < array.length - 1; i++) {
+    for (let k = i + 1; k < array.length; k++) {
+      if (array[i] > array[k]) invCount += 1;
+    }
+  }
+
+  return invCount;
+};
+
+const isSolvable = (nums) => getInvCount(nums) % 2 != 0;
+
+module.exports = { shuffle, chunk, areArraysEqual, isSolvable };

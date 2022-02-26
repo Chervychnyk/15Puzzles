@@ -1,4 +1,4 @@
-const { shuffle, chunk, areArraysEqual } = require("./utils");
+const { shuffle, chunk, areArraysEqual, isSolvable } = require("./utils");
 
 const EMPTY_SLOT_VALUE = 0;
 
@@ -11,12 +11,20 @@ const SOLVED_BOARD = [
 
 class Board {
   constructor() {
+    this.emptySlot = [3, 3];
+    this.table = this.initTable();
+  }
+
+  initTable() {
     const initialItems = Array.from({ length: 15 }, (_, i) => i + 1);
 
     const shuffledItems = shuffle(initialItems);
 
-    this.emptySlot = [3, 3];
-    this.table = chunk([...shuffledItems, EMPTY_SLOT_VALUE], 4);
+    if (isSolvable(shuffledItems)) {
+      return this.initTable();
+    } else {
+      return chunk([...shuffledItems, EMPTY_SLOT_VALUE], 4);
+    }
   }
 
   moveCell(num) {
@@ -26,11 +34,8 @@ class Board {
       const [row, cell] = position;
       const [emptySlotRow, emptySlotCell] = this.emptySlot;
 
-      if (row == emptySlotRow) {
-        this.swapBetweenCells(num, row, cell, emptySlotCell);
-      } else {
-        this.swapBetweenRows(num, cell, row, emptySlotRow);
-      }
+      this.table[emptySlotRow][emptySlotCell] = num;
+      this.table[row][cell] = EMPTY_SLOT_VALUE;
 
       this.emptySlot = position;
     } else {
@@ -84,65 +89,6 @@ class Board {
       return fromRow == emptySlotRow - 1 || fromRow == emptySlotRow + 1;
     } else {
       return false;
-    }
-  }
-
-  swapBetweenCells(num, row, fromCell, toCell) {
-    const rowToChange = this.table[row];
-
-    const updatedRow =
-      fromCell > toCell
-        ? [
-            ...rowToChange.slice(0, toCell),
-            num,
-            EMPTY_SLOT_VALUE,
-            ...rowToChange.slice(fromCell + 1),
-          ]
-        : [
-            ...rowToChange.slice(0, fromCell),
-            EMPTY_SLOT_VALUE,
-            num,
-            ...rowToChange.slice(toCell + 1),
-          ];
-
-    this.table = [
-      ...this.table.slice(0, row),
-      updatedRow,
-      ...this.table.slice(row + 1),
-    ];
-  }
-
-  swapBetweenRows(num, cell, fromRow, toRow) {
-    if (fromRow > toRow) {
-      this.table = [
-        ...this.table.slice(0, toRow),
-        [
-          ...this.table[toRow].slice(0, cell),
-          num,
-          ...this.table[toRow].slice(cell + 1),
-        ],
-        [
-          ...this.table[fromRow].slice(0, cell),
-          EMPTY_SLOT_VALUE,
-          ...this.table[fromRow].slice(cell + 1),
-        ],
-        ...this.table.slice(fromRow + 1),
-      ];
-    } else {
-      this.table = [
-        ...this.table.slice(0, fromRow),
-        [
-          ...this.table[fromRow].slice(0, cell),
-          EMPTY_SLOT_VALUE,
-          ...this.table[fromRow].slice(cell + 1),
-        ],
-        [
-          ...this.table[toRow].slice(0, cell),
-          num,
-          ...this.table[toRow].slice(cell + 1),
-        ],
-        ...this.table.slice(toRow + 1),
-      ];
     }
   }
 }
